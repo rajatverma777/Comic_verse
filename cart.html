@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ComicVerse Hub — Cart</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    crossorigin="anonymous">
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/browse.css">
+</head>
+
+<body class="page-cart">
+
+  <main class="container">
+    <h1>Your Cart</h1>
+    <div id="cart-items" class="grid grid--comics"></div>
+    <div id="cart-summary" style="margin-top:1rem"></div>
+  </main>
+
+  <div id="toast-root" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="comics.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/add-to-cart.js"></script>
+  <script>
+    // FOOTER YEAR SCRIPT REMOVED
+
+    function renderCart() {
+      const { items } = Cart.load();
+      const list = document.getElementById("cart-items");
+      const summary = document.getElementById("cart-summary");
+
+      list.innerHTML = "";
+      summary.innerHTML = "";
+
+      if (!items.length) {
+        list.innerHTML = "<p>Your cart is empty.</p>";
+        return;
+      }
+
+      let total = 0;
+
+      items.forEach(item => {
+        const comic = COMICS.find(c => c.id === item.id);
+        if (!comic) return;
+
+        const subtotal = comic.price * item.qty;
+        total += subtotal;
+
+        const row = document.createElement("div");
+        row.className = "card"; // Using .card style for consistency
+
+        row.innerHTML = `
+      <img src="${comic.img}">
+      <div class="meta">
+        <h4>${comic.title}</h4>
+        <p>Price: ₹${comic.price.toFixed(2)}</p>
+
+        <label>Qty:
+          <input type="number" min="1" value="${item.qty}" data-id="${item.id}" class="qty-input" />
+        </label>
+
+        <button class="btn btn-ghost remove " data-id="${item.id}" style="width: 100%; border-color: #f88; color: #f88;">
+          <i class="fa-solid fa-trash"></i> Remove
+        </button>
+      </div>
+    `;
+
+        list.appendChild(row);
+      });
+
+      summary.innerHTML = `<h3>Total: ₹${total.toFixed(2)}</h3>
+  <button id="checkout" class="btn">Checkout</button>`;
+
+      document.querySelectorAll(".qty-input").forEach(input => {
+        input.addEventListener("input", e => {
+          const id = e.target.dataset.id;
+          Cart.update(id, Number(e.target.value));
+          renderCart();
+          updateCartBadge();
+        });
+      });
+
+      document.querySelectorAll(".remove").forEach(btn => {
+        btn.addEventListener("click", e => {
+          const id = e.target.closest("button").dataset.id;
+          Cart.remove(id);
+          renderCart();
+          updateCartBadge();
+        });
+      });
+
+      document.getElementById("checkout").addEventListener("click", () => {
+        Cart.clear();
+        renderCart();
+        updateCartBadge();
+        Toast.show("Thank You!Order Placed", { icon: "fa-solid fa-check" });
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      renderCart();
+      // updateCartBadge() is in nav.js, but we call it here again
+      // after cart actions.
+      if (typeof updateCartBadge === 'function') {
+        updateCartBadge();
+      }
+    });
+  </script>
+
+
+</body>
+
+</html>

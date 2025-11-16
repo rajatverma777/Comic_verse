@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tests — ComicVerse</title>
+<link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+  <main class="container">
+    <h1>Unit Tests (browser-run)</h1>
+    <div id="results"></div>
+    <p>Open this file in a browser to run the tests.</p>
+  </main>
+  <script src="../comics.js"></script>
+  <script src="../js/cart.js"></script>
+  <script src="../js/app.js"></script>
+  <script>
+    (function(){
+      const results = document.getElementById('results');
+      function assert(cond, message){
+        const el = document.createElement('div');
+        el.textContent = (cond ? '✅ ' : '❌ ') + message;
+        el.style.padding = '6px';
+        results.appendChild(el);
+        if(!cond) el.style.background = '#3b0b0b';
+      }
+
+      // Test 1: findComicById
+      const c = window.__AppHelpers.findComicById('001');
+      assert(c && c.id==='001', 'findComicById should return comic with id 001');
+
+      // Test 2: cart add & total calculation
+      Cart.clear();
+      Cart.add('001', 2);
+      Cart.add('002', 1);
+      const total = window.__AppHelpers.calculateCartTotal(Cart.load());
+      const expected = (COMICS.find(x=>x.id==='001').price * 2) + (COMICS.find(x=>x.id==='002').price * 1);
+      assert(Math.abs(total - expected) < 0.001, 'calculateCartTotal should compute correct total');
+
+      // Test 3: wishlist persistence
+      localStorage.removeItem('comicverse_wishlist_v1');
+      Wishlist.toggle('001');
+      assert(Wishlist.has('001'), 'Wishlist.toggle should add id');
+      Wishlist.toggle('001');
+      assert(!Wishlist.has('001'), 'Wishlist.toggle should remove id');
+    })();
+  </script>
+</body>
+</html>

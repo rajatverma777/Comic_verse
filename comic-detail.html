@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ComicVerse Hub — Detail</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    crossorigin="anonymous">
+  <link rel="stylesheet" href="css/main.css" />
+</head>
+
+<body class="page-detail">
+
+  <main class="container">
+    <div class="detail-grid">
+      <div class="cover">
+        <img id="detail-img" src="" alt="comic cover">
+      </div>
+      <div class="info">
+        <h1 id="detail-title">Title</h1>
+        <p id="detail-synopsis"></p>
+        <p><strong>Creators:</strong> <span id="detail-creators"></span></p>
+        <p><strong>Publisher:</strong> <span id="detail-publisher"></span></p>
+        <p id="detail-price" style="font-size:1.25rem;font-weight:700"></p>
+        <div style="display:flex;gap:.5rem;margin-top:1rem">
+          <button id="add-to-cart" class="btn btn-view-full" style="width: auto;">
+            <i class="fa-solid fa-cart-plus"></i> Add to Cart
+          </button>
+          <button id="wish-btn" class="btn btn-ghost" style="width: auto;"><i class="fa-regular fa-heart "></i>
+            Wishlist</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast-root" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="comics.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/wishlist.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/add-to-cart.js"></script>
+  <script>
+    // FOOTER YEAR SCRIPT REMOVED
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const params = new URLSearchParams(location.search);
+      const id = params.get("id");
+      const comic = COMICS.find(c => c.id === id);
+
+      if (!comic) return;
+
+      // 1. Get wishlist data
+      const wishlistedIds = Wishlist.load();
+      let isWishlisted = wishlistedIds.includes(comic.id);
+
+      // 2. Get button and icon elements
+      const wishBtn = document.getElementById("wish-btn");
+      const wishIcon = wishBtn.querySelector("i");
+
+      // 3. Set initial state on page load
+      if (isWishlisted) {
+        wishIcon.classList.remove("fa-regular");
+        wishIcon.classList.add("fa-solid");
+        wishIcon.style.color = "var(--accent)";
+      }
+
+      // 4. Add click listener for wishlist button
+      wishBtn.addEventListener("click", () => {
+        Wishlist.toggle(comic.id); // Save state
+
+        // Toggle visual state
+        isWishlisted = wishIcon.classList.toggle("fa-solid");
+        wishIcon.classList.toggle("fa-regular");
+
+        if (isWishlisted) {
+          wishIcon.style.color = "var(--accent)";
+          Toast.show("Added to Wishlist", { icon: "fa-solid fa-heart" });
+        } else {
+          wishIcon.style.color = "";
+          Toast.show("Removed from Wishlist", { icon: "fa-regular fa-heart" });
+        }
+      });
+
+      document.getElementById("detail-title").textContent = comic.title;
+      document.getElementById("detail-img").src = comic.img;
+      document.getElementById("detail-synopsis").textContent = comic.synopsis;
+      document.getElementById("detail-publisher").textContent = comic.publisher;
+      document.getElementById("detail-creators").textContent =
+        Object.values(comic.creators).join(", ");
+      document.getElementById("detail-price").textContent =
+        "₹" + comic.price.toFixed(2);
+
+      document.getElementById("add-to-cart").addEventListener("click", () => {
+        Cart.add(comic.id);
+        updateCartBadge(); // Keep this to update badge immediately on click
+        Toast.show("Added to Cart!", { icon: "fa-solid fa-cart-plus" });
+      });
+
+      // updateCartBadge() is already called in nav.js, but
+      // we'll call it again to be safe.
+      if (typeof updateCartBadge === 'function') {
+        updateCartBadge();
+      }
+    });
+  </script>
+
+</body>
+
+</html>

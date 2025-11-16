@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ComicVerse Hub — Home</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    crossorigin="anonymous" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.4/dist/tailwind.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" />
+</head>
+
+<body class="page-home">
+  <main class="container">
+    <section class="hero">
+      <div id="controls-carousel" class="relative w-full rounded-xl" data-carousel="slide">
+        <div class="relative h-56 overflow-hidden rounded-xl md:h-96">
+          <div class="hidden duration-700 ease-in-out" data-carousel-item>
+            <img src="assets/hero/1.jpg"
+              class="absolute block w-full -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2" />
+          </div>
+
+          <div class="hidden duration-700 ease-in-out" data-carousel-item="active">
+            <img src="assets/hero/2.jpg"
+              class="absolute block w-full -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2" />
+          </div>
+
+          <div class="hidden duration-700 ease-in-out" data-carousel-item>
+            <img src="assets/hero/3.jpg"
+              class="absolute block w-full -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2" />
+          </div>
+        </div>
+
+        <button type="button"
+          class="absolute top-0 start-0 z-30 flex items-center justify-center h-full px-4 cursor-pointer"
+          data-carousel-prev>
+          <span class="inline-flex items-center justify-center w-10 h-10 rounded-base bg-black/50">
+            <svg class="w-5 h-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-width="2" d="m15 19-7-7 7-7" />
+            </svg>
+          </span>
+        </button>
+
+        <button type="button"
+          class="absolute top-0 end-0 z-30 flex items-center justify-center h-full px-4 cursor-pointer"
+          data-carousel-next>
+          <span class="inline-flex items-center justify-center w-10 h-10 rounded-base bg-black/50">
+            <svg class="w-5 h-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <path stroke="currentColor" stroke-width="2" d="m9 5 7 7-7 7" />
+            </svg>
+          </span>
+        </button>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="new-releases">
+      <h2 id="new-releases" class="head">New Releases</h2>
+      <div class="grid grid--comics" id="new-grid"></div>
+    </section>
+
+    <section class="section" aria-labelledby="popular">
+      <h2 id="popular" class="head">Popular Series</h2>
+      <div class="grid grid--comics" id="popular-grid"></div>
+    </section>
+  </main>
+
+  <div id="toast-root" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="comics.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/wishlist.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/add-to-cart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+
+  <script>
+      /**
+       * Toggles the visual state of a heart button and updates the wishlist.
+       * This function is placed in the global scope to be accessible by onclick.
+       */
+      function toggleHeart(buttonEl, id) {
+        Wishlist.toggle(id); // Save the state
+        const icon = buttonEl.querySelector('i');
+
+        // Toggle visual state
+        const isNowWishlisted = icon.classList.toggle('fa-solid');
+        icon.classList.toggle('fa-regular');
+
+        if (isNowWishlisted) {
+          icon.style.color = 'var(--accent)';
+          Toast.show("Added to Wishlist", { icon: "fa-solid fa-heart" });
+        } else {
+          icon.style.color = ''; // Reset color
+          Toast.show("Removed from Wishlist", { icon: "fa-regular fa-heart" });
+        }
+
+        // Add the animation from your CSS
+        icon.classList.add('animated');
+        setTimeout(() => icon.classList.remove('animated'), 200); // Clean up animation
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        // Get wishlist IDs *once* on load
+        const wishlistedIds = Wishlist.load();
+
+        // New releases
+        const newGrid = document.getElementById("new-grid");
+        COMICS.slice(0, 10).forEach((c) => {
+          // Check if this comic is wishlisted on load
+          const isWishlisted = wishlistedIds.includes(c.id);
+          const heartIconClass = isWishlisted ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+          const heartStyle = isWishlisted ? 'style="color: var(--accent);"' : '';
+
+          const card = document.createElement("article");
+          card.className = "card";
+          card.innerHTML = `
+          <img loading="lazy" src="${c.img}" alt="${c.title}">
+          <div class="meta">
+    
+            <div class="title-row">
+              <h4>${c.title}</h4>
+              <button class="heart-btn" data-id="${c.id}" onclick="toggleHeart(this, '${c.id}')">
+                <i class="${heartIconClass}" ${heartStyle}></i>
+              </button>
+            </div>
+    
+            <div class="muted">${c.publisher} • ${new Date(
+            c.release_date
+          ).getFullYear()}</div>
+    
+            <div style="margin-top:.5rem"><strong>$${c.price.toFixed(2)}</strong></div>
+    
+            <a class="btn btn-view-full" href="comic-detail.html?id=${c.id}">View</a>
+    
+          </div>
+          `;
+          newGrid.appendChild(card);
+        });
+
+        // Popular
+        const popGrid = document.getElementById("popular-grid");
+        COMICS.slice(3, 8).forEach((c) => {
+          const el = document.createElement("div");
+          el.className = "card";
+          el.innerHTML = `<img src="${c.img}" alt=""><div class="meta"><h4>${c.title}</h4><a class="btn btn-view-full" href="comic-detail.html?id=${c.id}">Open</a></div>`;
+          popGrid.appendChild(el);
+        });
+
+        updateCartBadge();
+      });
+    </script>
+</body>
+
+</html>

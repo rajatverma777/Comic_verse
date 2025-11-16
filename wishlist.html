@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>ComicVerse Hub — Wishlist</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+        crossorigin="anonymous">
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/browse.css">
+</head>
+
+<body class="page-cart">
+    <header class="nav">
+        <div class="nav-inner">
+            <nav class="nav-links nav-links--left" aria-label="Main">
+                <a href="index.html">Home</a>
+                <a href="browse.html">Browse</a>
+            </nav>
+
+            <div class="logo">
+                <a href="index.html">ComicVerse <span class="accent">Hub</span></a>
+            </div>
+
+            <nav class="nav-links nav-links--right" aria-label="User">
+                <a href="wishlist.html" class="active">Wishlist</a>
+                <a href="cart.html">Cart <span id="cart-badge" class="badge"></span></a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <h1>Your Wishlist</h1>
+        <div id="wishlist-items" class="grid grid--comics"></div>
+    </main>
+
+    <footer class="footer container">
+        
+    </footer>
+
+    <div id="toast-root" aria-live="polite" aria-atomic="true"></div>
+
+    <script src="comics.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/wishlist.js"></script>
+    <script src="js/toast.js"></script>
+    <script src="js/nav.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/add-to-cart.js"></script>
+
+    <script>
+        // Script to render the wishlist items
+        function renderWishlist() {
+            const itemIds = Wishlist.load(); // Assumes Wishlist.load() returns an array of IDs
+            const list = document.getElementById("wishlist-items");
+            list.innerHTML = "";
+
+            if (!itemIds.length) {
+                list.innerHTML = "<p>Your wishlist is empty.</p>";
+                return;
+            }
+
+            itemIds.forEach(id => {
+                const comic = COMICS.find(c => c.id === id);
+                if (!comic) return;
+
+                const card = document.createElement("article");
+                card.className = "card";
+
+                // Using the same card layout from index.html
+                card.innerHTML = `
+        <img loading="lazy" src="${comic.img}" alt="${comic.title}">
+        <div class="meta">
+          <div class="title-row">
+            <h4>${comic.title}</h4>
+            <button class="heart-btn" data-id="${comic.id}" onclick="toggleWishlistItem(this, '${comic.id}')">
+              <i class="fa-solid fa-heart" style="color: var(--accent);"></i>
+            </button>
+          </div>
+          <div class="muted">${comic.publisher} • ${new Date(comic.release_date).getFullYear()}</div>
+          <div style="margin-top:.5rem"><strong>$${comic.price.toFixed(2)}</strong></div>
+          <a class="btn btn-view-full" href="comic-detail.html?id=${comic.id}">View</a>
+        </div>
+      `;
+                list.appendChild(card);
+            });
+        }
+
+        // Helper function to handle the click and re-render
+        function toggleWishlistItem(btn, id) {
+            Wishlist.toggle(id); // Toggle the item
+            Toast.show("Removed from Wishlist", { icon: "fa-solid fa-trash" });
+            renderWishlist();     // Re-render the list
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            renderWishlist();
+            updateCartBadge(); // Keep the cart badge in sync
+        });
+    </script>
+
+</body>
+
+</html>
